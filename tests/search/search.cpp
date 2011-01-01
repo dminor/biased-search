@@ -79,9 +79,9 @@ int main(int argc, char **argv)
 
                 std::map<std::string, int>::iterator itor = map.find(key);
 
-                if (itor == map.end()) {
-                    std::cout << "bad search" << std::endl;
-                }
+                if (itor != map.end()) std::cout << key << ": " << itor->second << std::endl;
+                else std::cout << key << ": not found" << std::endl;
+
             } else if (cmd[1] == 'd') { 
                 std::string key(&cmd[2]); 
 
@@ -119,11 +119,12 @@ int main(int argc, char **argv)
                 std::string key(&cmd[2]); 
 
                 int result = -1;
-                treap->find(key, result);
-
-                if (result == -1) {
-                    std::cout << "bad search" << std::endl;
+                if (treap->find(key, result)) {
+                    std::cout << key << ": " << result << std::endl;
+                } else { 
+                    std::cout << key << ": not found" << std::endl;
                 }
+
             } else if (cmd[1] == 'd') { 
                 std::string key(&cmd[2]); 
 

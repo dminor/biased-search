@@ -3,9 +3,9 @@
 -- Parameters
 --
 wordlen = 10          -- word length
-nwords = 10000        -- number of words
+nwords = 100        -- number of words
 nsearches = 100000    -- number of searches
-zipf_s = 0.9          -- Zipf distribution "s" parameter
+zipf_s = 1.0      -- Zipf distribution "s" parameter
 
 --
 -- Return a random string of the specified length
@@ -83,17 +83,47 @@ function generate_sample(words, nwords)
     return sample 
 end
 
+--
+-- Count frequencies of each word in the given sample
+--
+function count_sample(sample)
+
+    local freq = {}
+
+    for _, word in ipairs(sample) do
+
+        if freq[word] then
+            freq[word] = freq[word] + 1
+        else
+            freq[word] = 1
+        end 
+    end
+
+    return freq
+end
+
 -- set random seed
 math.randomseed(os.time())
 
 words = generate_dictionary(nwords)
 searches = generate_sample(words, nsearches)
 
-file = assert(io.open('s10000.txt', 'w')) 
+-- dump frequencies for debugging
+freq = count_sample(searches)
+for _,word in ipairs(words) do
+    print(word.word, word.p, math.floor(word.p*nsearches), freq[word.word])
+end
+
+file = assert(io.open('s' .. nwords .. '-' .. nsearches .. '.txt', 'w')) 
+
+file:write(';wordlen: ' .. wordlen .. '\n')
+file:write(';nwords: ' .. nwords .. '\n')
+file:write(';nsearches: ' .. nsearches .. '\n')
+file:write(';zipf s: ' .. zipf_s .. '\n')
 
 shuffle(words)
 for _,word in ipairs(words) do
-    file:write('i ' .. word.word .. ' ' .. math.floor(word.p*nwords) .. '\n')
+    file:write('i ' .. word.word .. ' ' .. math.floor(word.p*nsearches) .. '\n')
 end
 
 for _,w in ipairs(searches) do

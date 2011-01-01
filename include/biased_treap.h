@@ -79,19 +79,13 @@ public:
                 }
             }
 
-            //re-balance based on priorities
-            while (n && n->parent) { 
-                if (n->parent->priority < n->priority) { 
-                    if (n->parent->left == n) {
-                        rotate_right(n->parent);
-                    } else {
-                        rotate_left(n->parent); 
-                    }
-
-                    n = n->parent; 
+            //re-balance based on priorities 
+            while (n->parent && n->parent->priority < n->priority) { 
+                if (n->parent->left == n) {
+                    rotate_right(n->parent);
                 } else {
-                    break;
-                }
+                    rotate_left(n->parent); 
+                } 
             }
         } 
     }
@@ -134,8 +128,7 @@ private:
         {
             left = right = 0;
             if (weight == 0) weight = 1;
-            priority = log(std::numeric_limits<float>::min() + (float)rand()/(float)RAND_MAX)/(float)weight;
-//           std::cout << weight << " " << priority << std::endl;
+            priority = pow((float)rand()/(float)RAND_MAX, 1.0/(float)weight); 
         } 
     };
 
@@ -147,7 +140,6 @@ private:
         Node *nl = n->left;
 
         nl->parent = n->parent; 
-        n->parent = nl;
 
         if (nl->parent != 0) {
             if (nl->parent->left == n) nl->parent->left = nl;
@@ -159,8 +151,8 @@ private:
         n->left = nl->right;
         if (n->left != 0) n->left->parent = n;
 
-        nl->right = n;
-
+        n->parent = nl;
+        nl->right = n; 
     } 
 
     // [T, T->right, T->right->left] <- [T->right, T->right->left, T]
@@ -169,7 +161,6 @@ private:
         Node *nr = n->right;
 
         nr->parent = n->parent; 
-        n->parent = nr;
 
         if (nr->parent != 0) {
             if (nr->parent->left == n) nr->parent->left = nr;
@@ -181,7 +172,18 @@ private:
         n->right = nr->left;
         if (n->right != 0) n->right->parent = n;
 
+        n->parent = nr;
         nr->left = n;
+    }
+
+    bool verify_treap(Node *n)
+    { 
+        if (!n) return true;
+
+        if (n->left && n->priority < n->left->priority) return false;
+        if (n->right && n->priority < n->right->priority) return false; 
+
+        return verify_treap(n->right) || verify_treap(n->left);
     }
 
 };
