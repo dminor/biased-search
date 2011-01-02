@@ -2,10 +2,10 @@
 --
 -- Parameters
 --
-wordlen = 10          -- word length
-nwords = 100        -- number of words
-nsearches = 100000    -- number of searches
-zipf_s = 1.0      -- Zipf distribution "s" parameter
+wordlen = 10                    -- word length
+nwords = tonumber(arg[1]) or 10000        -- number of words
+nsearches = tonumber(arg[2]) or 100000    -- number of searches
+zipf_s = tonumber(arg[3]) or 1            -- Zipf distribution "s" parameter
 
 --
 -- Return a random string of the specified length
@@ -108,18 +108,24 @@ math.randomseed(os.time())
 words = generate_dictionary(nwords)
 searches = generate_sample(words, nsearches)
 
--- dump frequencies for debugging
 freq = count_sample(searches)
-for _,word in ipairs(words) do
-    print(word.word, word.p, math.floor(word.p*nsearches), freq[word.word])
+
+-- calculate ensemble entropy 
+entropy = 0.0
+for _, word in ipairs(words) do
+--    print(word.word, word.p, math.floor(word.p*nsearches), freq[word.word])
+    entropy = entropy + word.p * math.log(1.0/word.p)/math.log(2)
 end
 
-file = assert(io.open('s' .. nwords .. '-' .. nsearches .. '.txt', 'w')) 
+print(entropy)
+
+file = assert(io.open('s' .. nwords .. '-' .. nsearches .. '-z' .. zipf_s .. '.txt', 'w')) 
 
 file:write(';wordlen: ' .. wordlen .. '\n')
 file:write(';nwords: ' .. nwords .. '\n')
 file:write(';nsearches: ' .. nsearches .. '\n')
 file:write(';zipf s: ' .. zipf_s .. '\n')
+file:write(';entropy: ' .. entropy .. '\n')
 
 shuffle(words)
 for _,word in ipairs(words) do
