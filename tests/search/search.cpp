@@ -26,11 +26,21 @@ THE SOFTWARE.
 #include <map>
 #include <string>
 
+#include "biased_hashtable.h"
 #include "biased_treap.h"
+
+const size_t MURMURHASH2_SEED = 0x5432FEDC;
+
+size_t MurmurHash2 ( const void * key, int len, unsigned int seed );
 
 bool operator<(const std::string &a, const std::string &b)
 {
     return a.compare(b) < 0;
+}
+
+size_t hash(const std::string &key)
+{
+    return MurmurHash2(key.c_str(), key.size(), MURMURHASH2_SEED);
 }
 
 int main(int argc, char **argv)
@@ -38,7 +48,7 @@ int main(int argc, char **argv)
 
     //check command line
     if (argc != 3) {
-        std::cerr << "usage: -map | -treap | -skiplist | -bst <operations>" << std::endl;
+        std::cerr << "usage: -map | -treap | -skiplist | -hashtable <operations>" << std::endl;
         return 1; 
     }
 
@@ -134,12 +144,112 @@ int main(int argc, char **argv)
 
     } else if (!strcmp(argv[1], "-skiplist")) {
 
-    } else if (!strcmp(argv[1], "-bst")) {
+    } else if (!strcmp(argv[1], "-hashtable")) {
+        BiasedHashtable<std::string, int> *ht = new BiasedHashtable<std::string, int>(25000, hash);
 
+        char cmd[80];
+        while (!data.eof()) {
+            data.getline(cmd, 80); 
+
+            if (cmd[0] == 'i') {
+
+                //extract word
+                size_t i = 2;
+                while (cmd[i] != ' ') ++i;
+                cmd[i] = 0;
+                std::string key(&cmd[2]);
+
+                //extract weight
+                ++i;
+                size_t weight = atoi(&cmd[i]);
+                //std::cout << weight << std::endl;
+
+                ht->insert(key, 0, weight); 
+            } else if (cmd[0] == 's') {
+                std::string key(&cmd[2]); 
+
+                int result = -1;
+                if (ht->find(key, result)) {
+                    std::cout << key << ": " << result << std::endl;
+                } else { 
+                    std::cout << key << ": not found" << std::endl;
+                }
+
+            } else if (cmd[1] == 'd') { 
+                std::string key(&cmd[2]); 
+
+                //delete not implemented
+            } 
+        }
     } else {
-        std::cerr << "usage: -map | -treap | -skiplist | -bst <operations>" << std::endl;
+        std::cerr << "usage: -map | -treap | -skiplist | -hashtable <operations>" << std::endl;
         return 1; 
     }
 
     data.close();
 }
+
+//-----------------------------------------------------------------------------
+// MurmurHash2, by Austin Appleby
+
+// Note - This code makes a few assumptions about how your machine behaves -
+
+// 1. We can read a 4-byte value from any address without crashing
+// 2. sizeof(int) == 4
+
+// And it has a few limitations -
+
+// 1. It will not work incrementally.
+// 2. It will not produce the same results on little-endian and big-endian
+//    machines.
+
+unsigned int MurmurHash2 ( const void * key, int len, unsigned int seed )
+{
+	// 'm' and 'r' are mixing constants generated offline.
+	// They're not really 'magic', they just happen to work well.
+
+	const unsigned int m = 0x5bd1e995;
+	const int r = 24;
+
+	// Initialize the hash to a 'random' value
+
+	unsigned int h = seed ^ len;
+
+	// Mix 4 bytes at a time into the hash
+
+	const unsigned char * data = (const unsigned char *)key;
+
+	while(len >= 4)
+	{
+		unsigned int k = *(unsigned int *)data;
+
+		k *= m; 
+		k ^= k >> r; 
+		k *= m; 
+		
+		h *= m; 
+		h ^= k;
+
+		data += 4;
+		len -= 4;
+	}
+	
+	// Handle the last few bytes of the input array
+
+	switch(len)
+	{
+	case 3: h ^= data[2] << 16;
+	case 2: h ^= data[1] << 8;
+	case 1: h ^= data[0];
+	        h *= m;
+	};
+
+	// Do a few final mixes of the hash to ensure the last few
+	// bytes are well-incorporated.
+
+	h ^= h >> 13;
+	h *= m;
+	h ^= h >> 15;
+
+	return h;
+} 

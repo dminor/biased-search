@@ -27,6 +27,26 @@ class BiasedSkiplist {
 
 public:
 
+    void insert(const K &key, const V &value, size_t weight)
+    {
+
+    } 
+
+    bool find(const K &key, V &result)
+    {
+
+    }
+
+    void remove(const K &key)
+    {
+
+    }
+
+    void reweight(const K &key, const V &value)
+    {
+
+    }
+
 private:
 
 };
