@@ -49,11 +49,11 @@ public:
     bool find(const K &key, V &result)
     {
         bool found = false;
-        size_t index = hash(key) % size;
-        while (nodes[index].stored) {
-            if (nodes[index].key == key) {
+        size_t index = hash(key);
+        while (nodes[index % size].stored) {
+            if (nodes[index % size].key == key) {
                 found = true;
-                result = nodes[index].value;
+                result = nodes[index % size].value;
                 break;
             }
 
@@ -65,13 +65,15 @@ public:
 
     void remove(const K &key)
     {
-        size_t index = hash(key) % size;
-        while (nodes[index].stored) {
-            if (nodes[index].key == key) {
-                nodes[index].stored = false;
+        size_t index = hash(key);
+        while (nodes[index % size].stored) {
+            if (nodes[index % size].key == key) {
+                nodes[index % size].stored = false;
                 --count;
                 break;
             }
+
+            ++index;
         }
     }
 
@@ -119,25 +121,17 @@ private:
             nodes[index].value = value;
             nodes[index].weight = weight;
             nodes[index].stored = true;
-
-            std::cout << "inserted: " << key << std::endl;
-        } else {
-            std::cout << "collision: " << key << " index: " << index << std::endl;
-
+        } else { 
             //find the first index of lower weight
             size_t index_to_use = index + 1; 
-            while(nodes[index_to_use % size].stored && nodes[index_to_use % size].weight < weight) ++index_to_use; 
-
-            std::cout << "index_to_use: " << index_to_use << std::endl;
+            while(nodes[index_to_use % size].stored && nodes[index_to_use % size].weight > weight) ++index_to_use; 
 
             //find the first empty index
             size_t first_empty = index_to_use;
             while(nodes[first_empty % size].stored) ++first_empty; 
 
-            std::cout << "first_empty: " << first_empty << std::endl;
-
             //shift nodes into place and copy in our new node
-            for (size_t i = first_empty; i > index_to_use; --i) nodes[i % size] = nodes[(i - 1) % size];
+            for (size_t i = first_empty; i >= index_to_use; --i) nodes[i % size] = nodes[(i - 1) % size];
             nodes[index_to_use % size].key = key;
             nodes[index_to_use % size].value = value;
             nodes[index_to_use % size].weight = weight; 
