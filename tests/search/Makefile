@@ -12,7 +12,7 @@ all: $(OBJS)
 .cpp.o:
 	g++ $(INCS) $(CFLAGS) -c $< -o $@
 
-search.o: ../../include/biased_treap.h ../../include/biased_hashtable.h
+search.o: ../../include/biased_treap.h ../../include/biased_hashtable.h ../../include/biased_skiplist.h
 
 clean:
 	rm *.o $(TARGET) 

@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include <string>
 
 #include "biased_hashtable.h"
+#include "biased_skiplist.h"
 #include "biased_treap.h"
 
 const size_t MURMURHASH2_SEED = 0x5432FEDC;
@@ -143,6 +144,44 @@ int main(int argc, char **argv)
         }
 
     } else if (!strcmp(argv[1], "-skiplist")) {
+
+        BiasedSkiplist<std::string, int> *skiplist = new BiasedSkiplist<std::string, int>(15);
+
+        char cmd[80];
+        while (!data.eof()) {
+            data.getline(cmd, 80); 
+
+            if (cmd[0] == 'i') {
+
+                //extract word
+                size_t i = 2;
+                while (cmd[i] != ' ') ++i;
+                cmd[i] = 0;
+                std::string key(&cmd[2]);
+
+                //extract weight
+                ++i;
+                size_t weight = atoi(&cmd[i]);
+                //std::cout << weight << std::endl;
+
+                skiplist->insert(key, 0, weight); 
+            } else if (cmd[0] == 's') {
+                std::string key(&cmd[2]); 
+
+                int result = -1;
+                if (skiplist->find(key, result)) {
+                    std::cout << key << ": " << result << std::endl;
+                } else { 
+                    std::cout << key << ": not found" << std::endl;
+                }
+
+            } else if (cmd[1] == 'd') { 
+                std::string key(&cmd[2]); 
+
+                //delete not implemented
+            } 
+        }
+
 
     } else if (!strcmp(argv[1], "-hashtable")) {
         BiasedHashtable<std::string, int> *ht = new BiasedHashtable<std::string, int>(25000, hash);

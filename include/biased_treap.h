@@ -183,7 +183,7 @@ private:
         if (n->left && n->priority < n->left->priority) return false;
         if (n->right && n->priority < n->right->priority) return false; 
 
-        return verify_treap(n->right) || verify_treap(n->left);
+        return verify_treap(n->right) && verify_treap(n->left);
     }
 
 };
