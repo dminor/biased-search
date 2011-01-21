@@ -1,5 +1,5 @@
 
-DIRS = search
+DIRS = search test-hashtable test-treap
 
 all:
 	for dir in $(DIRS); do cd $$dir; make; cd ..; done
