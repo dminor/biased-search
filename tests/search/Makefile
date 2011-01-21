@@ -1,7 +1,7 @@
 
 INCS = -I../../include 
 LIBS = 
-CFLAGS = -g -O2
+CFLAGS = -g -O2 -Wall
 LDFLAGS = -L../../bin 
 OBJS = search.o 
 TARGET = ../../bin/search

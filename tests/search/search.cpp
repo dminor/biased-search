@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 
     //check command line
     if (argc != 3) {
-        std::cerr << "usage: -map | -treap | -skiplist | -hashtable <operations>" << std::endl;
+        std::cerr << "usage: -map | -treap | -skiplist | -hashtable | -nop <operations>" << "\n";
         return 1; 
     }
 
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
     std::ifstream data(argv[2]);
 
     if (!data) {
-        std::cout << "error: could not open data file: " << argv[2] << std::endl;
+        std::cerr << "error: could not open data file: " << argv[2] << "\n"; 
         return 1;
     } 
 
@@ -90,8 +90,8 @@ int main(int argc, char **argv)
 
                 std::map<std::string, int>::iterator itor = map.find(key);
 
-                if (itor != map.end()) std::cout << key << ": " << itor->second << std::endl;
-                else std::cout << key << ": not found" << std::endl;
+                if (itor != map.end()) std::cout << key << ": " << itor->second << "\n";
+                else std::cout << key << ": not found" << "\n"; 
 
             } else if (cmd[1] == 'd') { 
                 std::string key(&cmd[2]); 
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 
     } else if (!strcmp(argv[1], "-treap")) {
 
-        BiasedTreap<std::string, int> *treap = new BiasedTreap<std::string, int>;
+        BiasedTreap<std::string, int> *treap = new BiasedTreap<std::string, int>(false);
 
         char cmd[80];
         while (!data.eof()) {
@@ -131,9 +131,9 @@ int main(int argc, char **argv)
 
                 int result = -1;
                 if (treap->find(key, result)) {
-                    std::cout << key << ": " << result << std::endl;
+                    std::cout << key << ": " << result << "\n"; 
                 } else { 
-                    std::cout << key << ": not found" << std::endl;
+                    std::cout << key << ": not found" << "\n";
                 }
 
             } else if (cmd[1] == 'd') { 
@@ -170,9 +170,9 @@ int main(int argc, char **argv)
 
                 int result = -1;
                 if (skiplist->find(key, result)) {
-                    std::cout << key << ": " << result << std::endl;
+                    std::cout << key << ": " << result << "\n"; 
                 } else { 
-                    std::cout << key << ": not found" << std::endl;
+                    std::cout << key << ": not found" << "\n"; 
                 }
 
             } else if (cmd[1] == 'd') { 
@@ -182,9 +182,10 @@ int main(int argc, char **argv)
             } 
         }
 
+        skiplist->dump_tree();
 
     } else if (!strcmp(argv[1], "-hashtable")) {
-        BiasedHashtable<std::string, int> *ht = new BiasedHashtable<std::string, int>(25000, hash);
+        BiasedHashtable<std::string, int> *ht = new BiasedHashtable<std::string, int>(10000, hash, false);
 
         char cmd[80];
         while (!data.eof()) {
@@ -209,9 +210,9 @@ int main(int argc, char **argv)
 
                 int result = -1;
                 if (ht->find(key, result)) {
-                    std::cout << key << ": " << result << std::endl;
+                    std::cout << key << ": " << result << "\n"; 
                 } else { 
-                    std::cout << key << ": not found" << std::endl;
+                    std::cout << key << ": not found" << "\n"; 
                 }
 
             } else if (cmd[1] == 'd') { 
@@ -220,8 +221,38 @@ int main(int argc, char **argv)
                 //delete not implemented
             } 
         }
+    } else if (!strcmp(argv[1], "-nop")) {
+
+        char cmd[80];
+        while (!data.eof()) {
+            data.getline(cmd, 80); 
+
+            if (cmd[0] == 'i') {
+
+                //extract word
+                size_t i = 2;
+                while (cmd[i] != ' ') ++i;
+                cmd[i] = 0;
+                std::string key(&cmd[2]);
+
+                //extract weight
+                ++i;
+                size_t weight = atoi(&cmd[i]); 
+
+            } else if (cmd[0] == 's') {
+                std::string key(&cmd[2]); 
+
+                int result = -1;
+                std::cout << key << ": " << result << "\n"; 
+            } else if (cmd[1] == 'd') { 
+                std::string key(&cmd[2]); 
+
+                //delete not implemented
+            } 
+        }
+
     } else {
-        std::cerr << "usage: -map | -treap | -skiplist | -hashtable <operations>" << std::endl;
+        std::cerr << "usage: -map | -treap | -skiplist | -hashtable | -nop <operations>" << "\n"; 
         return 1; 
     }
 
