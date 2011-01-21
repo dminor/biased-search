@@ -25,15 +25,24 @@ THE SOFTWARE.
 
 #include <cstdlib>
 #include <cmath>
+#include <fstream>
 #include <limits>
+
+/* 
+Skip list implementation for weighted / biased searches.
+
+Based upon the description in: 
+Bagchi, A., Buchsbaum, A., Goodrich, M. T., (2005) Biased Skip Lists.
+Algorithmica, Vol 42, Number 1, pp. 31--48.  
+*/
 
 template<class K, class V> class BiasedSkiplist {
 
 public:
 
-	BiasedSkiplist(size_t max_height) : height(1), max_height(max_height)
+	BiasedSkiplist(size_t max_level, bool adapt_weights) : level(1), max_level(max_level), adapt_weights(adapt_weights)
 	{
-		head = new Node(max_height, max_height);
+		head = new Node(max_level, max_level);
 	}
 
 	virtual ~BiasedSkiplist()
@@ -48,43 +57,61 @@ public:
 
 	void insert(const K &key, const V &value, size_t weight)
 	{
-		size_t insert_height = random_height(weight);
-		if (insert_height > max_height) insert_height = max_height;
-        if (insert_height > height) height = insert_height;
-		
-		Node *n = new Node(insert_height, max_height);
-		n->key = key;
-		n->value = value;
+        //pick level based upon weight 
+		size_t insert_level = random_level(weight);
+		if (insert_level > max_level) insert_level = max_level;
+        if (insert_level > level) level = insert_level;
 
 		//allocate space on stack for nodes which need to be updated
-		Node **update_nodes = (Node **)alloca(insert_height * sizeof(Node *));
+		Node **update = (Node **)alloca(insert_level * sizeof(Node *));
 
 		//search through skip list to find predecessor at each level
-		for (size_t i = insert_height - 1; i >= 0 && i < insert_height; --i) {
-			Node *t = head;
-			while (t != 0 && t->next[i] != 0 && t->next[i]->key < key) t = t->next[i];
-			update_nodes[i] = t;
+        Node *t = head;
+		for (size_t i = insert_level - 1; i >= 0 && i < insert_level; --i) {
+			while (t->next[i] != 0 && t->next[i]->key < key) t = t->next[i];
+			update[i] = t;
 		}
+
+        //we don't handle duplicate keys
+        if (t->next[0] && t->next[0]->key == key) { 
+            return;
+        }
+
+        //create new node 
+		Node *n;
+
+        if (adapt_weights) {
+		    n = new Node(insert_level, max_level); 
+        } else {
+		    n = new Node(insert_level, insert_level); 
+        }
+
+		n->key = key;
+		n->value = value; 
 
 		//splice into skip list
-		for (size_t i = 0; i < insert_height; ++i) {
-			Node *t = update_nodes[i]->next[i];
-			update_nodes[i]->next[i] = n;
-			n->next[i] = t;
-		}
-
+		for (size_t i = 0; i < insert_level; ++i) {
+			n->next[i] = update[i]->next[i];
+			update[i]->next[i] = n;
+		} 
 	}
 
 	bool find(const K &key, V &result)
 	{
 		bool found = false;
 
-		for (size_t i = height - 1; i >= 0 && i < height; --i) {
-			Node *t = head;
-			while (t != 0 && t->next[i] != 0 && t->next[i]->key <= key) t = t->next[i];
-			if (t->key == key) {
+        Node *t = head;
+		for (size_t i = level - 1; i >= 0 && i < level; --i) {
+			while (t->next[i] != 0 && t->next[i]->key < key) t = t->next[i];
+			if (t->next[i] && t->next[i]->key == key) {
 				result = t->value;
 				found = true;
+
+                //FIXME: not implemented yet
+                if (adapt_weights) {
+
+                }
+
 				break;
 			}
 		}
@@ -94,27 +121,55 @@ public:
 
 	void remove(const K &key)
 	{
-
+		//search through skip list to find predecessor at each level
+        //and update links to splice out removed key
+        Node *t = head;
+		for (size_t i = level - 1; i >= 0 && i < level; --i) {
+			while (t->next[i] != 0 && t->next[i]->key < key) t = t->next[i]; 
+            if (t->next[i]) { 
+                if (i == 0) {
+                    //if at lowest level, also free memory
+                    Node *temp = t->next[i];
+                    t->next[i] = t->next[i]->next[i]; 
+                    delete temp;
+                } else {
+                    t->next[i] = t->next[i]->next[i]; 
+                }
+            }
+		} 
 	}
 
-	void reweight(const K &key, const V &value)
-	{
+    void render_tree(const char *filename)
+    {
+        std::ofstream o(filename);
+        if (o) { 
+            for (size_t i = level - 1; i >= 0 && i < level; --i) {
+                Node *t = head;
+                std::cout << i << " ";
+                while (t->next[i] != 0) { 
+                    t = t->next[i];
+                    std::cout << t->key << ", ";
+                }
+                std::cout << ".\n";
+            } 
 
-	}
+            o.close();
+        }
+    }
 
 private:
 
 	struct Node {
 		K key;
 		V value;
-		size_t height;
+		size_t level;
 		Node **next;
 
-		Node(size_t height, size_t max_height) : height(height)
+		Node(size_t level, size_t max_level) : level(level)
 		{
-			next = new Node *[max_height];
+			next = new Node *[max_level];
 
-			for (size_t i = 0; i < max_height; ++i)
+			for (size_t i = 0; i < max_level; ++i)
 			{
 				next[i] = 0;
 			}
@@ -127,15 +182,20 @@ private:
 	};
 
 	Node *head;
-	size_t height;
-	size_t max_height;
+	size_t level;
+	size_t max_level;
+    bool adapt_weights;
 
-	size_t random_height(size_t weight)
+	size_t random_level(size_t weight)
 	{
 		if (weight == 0) weight = 1;
-		size_t height = 1 + (int)(log((float)weight)/log(2.0f));
-		while (rand() < RAND_MAX / 2) ++height;
-		return height;
+
+		size_t level;
+        if (adapt_weights) level = 1;
+        else level = 1 + (int)(log((float)weight)/log(2.0f));
+
+		while ((float)rand() / (float)RAND_MAX < 0.5) ++level;
+		return level;
 	}
 };
 

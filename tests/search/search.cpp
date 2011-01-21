@@ -61,7 +61,10 @@ int main(int argc, char **argv)
         return 1;
     } 
 
-    srand(time(0));
+    //pick random seed
+    int seed = time(0);
+    srand(seed);
+    std::cout << "random seed: " << seed << "\n";
 
     //see which data structure to use and run operations on it
     if (!strcmp(argv[1], "-map")) {
@@ -122,8 +125,7 @@ int main(int argc, char **argv)
 
                 //extract weight
                 ++i;
-                size_t weight = atoi(&cmd[i]);
-                //std::cout << weight << std::endl;
+                size_t weight = atoi(&cmd[i]); 
 
                 treap->insert(key, 0, weight); 
             } else if (cmd[0] == 's') {
@@ -145,7 +147,7 @@ int main(int argc, char **argv)
 
     } else if (!strcmp(argv[1], "-skiplist")) {
 
-        BiasedSkiplist<std::string, int> *skiplist = new BiasedSkiplist<std::string, int>(15);
+        BiasedSkiplist<std::string, int> *skiplist = new BiasedSkiplist<std::string, int>(15, false);
 
         char cmd[80];
         while (!data.eof()) {
@@ -161,8 +163,7 @@ int main(int argc, char **argv)
 
                 //extract weight
                 ++i;
-                size_t weight = atoi(&cmd[i]);
-                //std::cout << weight << std::endl;
+                size_t weight = atoi(&cmd[i]); 
 
                 skiplist->insert(key, 0, weight); 
             } else if (cmd[0] == 's') {
@@ -180,9 +181,7 @@ int main(int argc, char **argv)
 
                 //delete not implemented
             } 
-        }
-
-        skiplist->dump_tree();
+        } 
 
     } else if (!strcmp(argv[1], "-hashtable")) {
         BiasedHashtable<std::string, int> *ht = new BiasedHashtable<std::string, int>(10000, hash, false);
