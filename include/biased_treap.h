@@ -25,6 +25,7 @@ THE SOFTWARE.
 
 #include <cstdlib>
 #include <cmath>
+#include <fstream>
 #include <limits>
 
 /*
@@ -39,7 +40,7 @@ template<class K, class V> class BiasedTreap {
 
 public:
 
-    BiasedTreap() : root(0)
+    BiasedTreap(bool adapt_weights) : root(0), adapt_weights(adapt_weights)
     { 
     } 
 
@@ -102,6 +103,24 @@ public:
                 n = n->right; 
             } else {
                 result = n->value;
+
+                //if adapting weights, generate a new priority and adjust treap
+                if (adapt_weights) {
+                    float t = (float)rand()/(float)RAND_MAX;
+                    if (t > n->priority) {
+                        n->priority = t;
+
+                        //re-balance based on priorities 
+                        while (n->parent && n->parent->priority < n->priority) { 
+                            if (n->parent->left == n) {
+                                rotate_right(n->parent);
+                            } else {
+                                rotate_left(n->parent); 
+                            } 
+                        } 
+                    }
+                }
+
                 found = true;
             }
         }
@@ -110,8 +129,49 @@ public:
     }
 
     void remove(const K &key)
-    {
+    { 
+        Node *n = root; 
+        while (n) {
+            if (key < n->key) {
+                n = n->left;
+            } else if (n->key < key) { 
+                n = n->right; 
+            } else {
+    
+                //we are a leaf, so it is safe to delete 
+                if (n->left == 0 && n->right ==0) {
+                    if (n->parent) {
+                        if (n->parent->left == n) n->parent->left = 0;
+                        else if (n->parent->right == n) n->parent->right = 0;
+                    } else {
+                        root = 0;
+                    }
 
+                    delete n;
+                    break;
+                }  
+      
+                //rotate down to leaf
+                if (n->left && !n->right) rotate_right(n); 
+                else if (!n->left && n->right) rotate_left(n); 
+                else if (n->left->priority < n->right->priority) rotate_right(n);
+                else rotate_left(n); 
+            }
+        } 
+    }
+
+    void render_tree(const char *filename)
+    {
+        std::ofstream o(filename);
+        if (o) {
+            o << "digraph \"treap\" {\n"; 
+            o << "ordering=out;\n";
+
+            render_node(o, root);
+
+            o << "}\n"; 
+            o.close();
+        }
     }
 
 private:
@@ -133,6 +193,7 @@ private:
     };
 
     Node *root;
+    bool adapt_weights;
 
     // [T, T->left, T->left->right] <- [T->left, T->left->right, T]
     void rotate_right(Node *n)
@@ -184,6 +245,14 @@ private:
         if (n->right && n->priority < n->right->priority) return false; 
 
         return verify_treap(n->right) && verify_treap(n->left);
+    }
+
+    void render_node(const std::ofstream &o, Node *node)
+    {
+        o << "N" << node->key << " [label=\"" << node->key << ", " << node->priority << "\";\n";
+        if (node->parent) o << "N" << node->parent->key << " -> N" << node->key << ";\n";
+        if (node->left) render_node(o, node->left);
+        if (node->right) render_node(o, node->right);
     }
 
 };
