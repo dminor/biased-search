@@ -42,7 +42,7 @@ public:
 
 	BiasedSkiplist(size_t max_level, bool adapt_weights) : level(1), max_level(max_level), adapt_weights(adapt_weights)
 	{
-		head = new Node(max_level, max_level);
+		head = new Node(max_level, max_level, 0);
 	}
 
 	virtual ~BiasedSkiplist()
@@ -81,9 +81,9 @@ public:
 		Node *n;
 
         if (adapt_weights) {
-		    n = new Node(insert_level, max_level); 
+		    n = new Node(insert_level, max_level, weight); 
         } else {
-		    n = new Node(insert_level, insert_level); 
+		    n = new Node(insert_level, insert_level, weight); 
         }
 
 		n->key = key;
@@ -104,12 +104,32 @@ public:
 		for (size_t i = level - 1; i >= 0 && i < level; --i) {
 			while (t->next[i] != 0 && t->next[i]->key < key) t = t->next[i];
 			if (t->next[i] && t->next[i]->key == key) {
-				result = t->value;
+				result = t->next[i]->value;
 				found = true;
 
-                //FIXME: not implemented yet
                 if (adapt_weights) {
+                    Node *n = t->next[i];
 
+                    ++n->weight;
+                    size_t new_level = random_level(n->weight);
+                    if (new_level > n->level) {
+
+                        //search through skip list to find predecessor at each level and update
+                        Node *p = head;
+                        for (size_t j = new_level - 1; j > i && j < new_level; --j) {
+                            while (p->next[j] != 0 && p->next[j]->key < n->key) p = p->next[j];
+                            n->next[j] = p->next[j];
+                            p->next[j] = n; 
+                        } 
+
+                    } else if (new_level < t->next[i]->level) { 
+                        //remove from levels
+                        for (size_t j = n->level; j >= new_level && j < n->level; --j) {
+                            t->next[i] = t->next[i]->next[i]; 
+                        } 
+                    }
+
+                    n->level = new_level;
                 }
 
 				break;
@@ -163,9 +183,10 @@ private:
 		K key;
 		V value;
 		size_t level;
+        size_t weight;
 		Node **next;
 
-		Node(size_t level, size_t max_level) : level(level)
+		Node(size_t level, size_t max_level, size_t weight) : level(level), weight(weight)
 		{
 			next = new Node *[max_level];
 
@@ -190,9 +211,7 @@ private:
 	{
 		if (weight == 0) weight = 1;
 
-		size_t level;
-        if (adapt_weights) level = 1;
-        else level = 1 + (int)(log((float)weight)/log(2.0f));
+        size_t level = 1 + (int)(log((float)weight)/log(2.0f));
 
 		while ((float)rand() / (float)RAND_MAX < 0.5) ++level;
 		return level;
