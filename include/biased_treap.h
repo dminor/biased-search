@@ -40,7 +40,7 @@ template<class K, class V> class BiasedTreap {
 
 public:
 
-    BiasedTreap(bool adapt_weights) : root(0), adapt_weights(adapt_weights)
+    BiasedTreap(bool self_adjust) : root(0), self_adjust(self_adjust)
     { 
     } 
 
@@ -105,7 +105,7 @@ public:
                 result = n->value;
 
                 //if adapting weights, generate a new priority and adjust treap
-                if (adapt_weights) {
+                if (self_adjust) {
                     float t = (float)rand()/(float)RAND_MAX;
                     if (t > n->priority) {
                         n->priority = t;
@@ -193,7 +193,7 @@ private:
     };
 
     Node *root;
-    bool adapt_weights;
+    bool self_adjust;
 
     // [T, T->left, T->left->right] <- [T->left, T->left->right, T]
     void rotate_right(Node *n)

@@ -48,9 +48,18 @@ int main(int argc, char **argv)
 {
 
     //check command line
-    if (argc != 3) {
-        std::cerr << "usage: -map | -treap | -skiplist | -hashtable | -nop <operations>" << "\n";
+    if (argc < 3) {
+        std::cerr << "usage: -map | -treap | -skiplist | -hashtable | -nop <operations> [-self-adjust]" << "\n";
         return 1; 
+    }
+
+    //see if we should adapt weights
+    bool self_adjust = false;
+    if (argc == 4) {
+        if (!strncmp(argv[3], "-self-adjust", 15)) {
+            self_adjust = true;
+            std::cerr << "using self adjusting version" << std::endl;
+        }
     }
 
     //read data file
@@ -109,7 +118,7 @@ int main(int argc, char **argv)
 
     } else if (!strcmp(argv[1], "-treap")) {
 
-        BiasedTreap<std::string, int> *treap = new BiasedTreap<std::string, int>(false);
+        BiasedTreap<std::string, int> *treap = new BiasedTreap<std::string, int>(self_adjust);
 
         char cmd[80];
         while (!data.eof()) {
@@ -147,7 +156,12 @@ int main(int argc, char **argv)
 
     } else if (!strcmp(argv[1], "-skiplist")) {
 
-        BiasedSkiplist<std::string, int> *skiplist = new BiasedSkiplist<std::string, int>(15, false);
+        if (self_adjust) {
+            std::cerr << "error: self-adjusting mode not supported by biased skiplists.\n";
+            return 1; 
+        }
+
+        BiasedSkiplist<std::string, int> *skiplist = new BiasedSkiplist<std::string, int>(32);
 
         char cmd[80];
         while (!data.eof()) {
@@ -178,47 +192,87 @@ int main(int argc, char **argv)
 
             } else if (cmd[1] == 'd') { 
                 std::string key(&cmd[2]); 
-
-                //delete not implemented
+                skiplist->remove(key);
             } 
         } 
 
     } else if (!strcmp(argv[1], "-hashtable")) {
-        BiasedHashtable<std::string, int> *ht = new BiasedHashtable<std::string, int>(10000, hash, false);
 
-        char cmd[80];
-        while (!data.eof()) {
-            data.getline(cmd, 80); 
+        if (!self_adjust) {
 
-            if (cmd[0] == 'i') {
+            BiasedHashtable<std::string, int> *ht = new BiasedHashtable<std::string, int>(5000, hash);
 
-                //extract word
-                size_t i = 2;
-                while (cmd[i] != ' ') ++i;
-                cmd[i] = 0;
-                std::string key(&cmd[2]);
+            char cmd[80];
+            while (!data.eof()) {
+                data.getline(cmd, 80); 
 
-                //extract weight
-                ++i;
-                size_t weight = atoi(&cmd[i]);
-                //std::cout << weight << std::endl;
+                if (cmd[0] == 'i') {
 
-                ht->insert(key, 0, weight); 
-            } else if (cmd[0] == 's') {
-                std::string key(&cmd[2]); 
+                    //extract word
+                    size_t i = 2;
+                    while (cmd[i] != ' ') ++i;
+                    cmd[i] = 0;
+                    std::string key(&cmd[2]);
 
-                int result = -1;
-                if (ht->find(key, result)) {
-                    std::cout << key << ": " << result << "\n"; 
-                } else { 
-                    std::cout << key << ": not found" << "\n"; 
-                }
+                    //extract weight
+                    ++i;
+                    size_t weight = atoi(&cmd[i]);
+                    //std::cout << weight << std::endl;
 
-            } else if (cmd[1] == 'd') { 
-                std::string key(&cmd[2]); 
+                    ht->insert(key, 0, weight); 
+                } else if (cmd[0] == 's') {
+                    std::string key(&cmd[2]); 
 
-                //delete not implemented
-            } 
+                    int result = -1;
+                    if (ht->find(key, result)) {
+                        std::cout << key << ": " << result << "\n"; 
+                    } else { 
+                        std::cout << key << ": not found" << "\n"; 
+                    }
+
+                } else if (cmd[1] == 'd') { 
+                    std::string key(&cmd[2]); 
+                    ht->remove(key);
+                } 
+            }
+        } else {
+
+            SelfAdjustingBiasedHashtable<std::string, int> *ht = new SelfAdjustingBiasedHashtable<std::string, int>(5000, hash);
+
+            char cmd[80];
+            while (!data.eof()) {
+                data.getline(cmd, 80); 
+
+                if (cmd[0] == 'i') {
+
+                    //extract word
+                    size_t i = 2;
+                    while (cmd[i] != ' ') ++i;
+                    cmd[i] = 0;
+                    std::string key(&cmd[2]);
+
+                    //extract weight
+                    ++i;
+                    size_t weight = atoi(&cmd[i]);
+                    //std::cout << weight << std::endl;
+
+                    ht->insert(key, 0); 
+                } else if (cmd[0] == 's') {
+                    std::string key(&cmd[2]); 
+
+                    int result = -1;
+                    if (ht->find(key, result)) {
+                        std::cout << key << ": " << result << "\n"; 
+                    } else { 
+                        std::cout << key << ": not found" << "\n"; 
+                    }
+
+                } else if (cmd[1] == 'd') { 
+                    std::string key(&cmd[2]); 
+                    ht->remove(key);
+                } 
+
+            }
         }
     } else if (!strcmp(argv[1], "-nop")) {
 
@@ -245,13 +299,11 @@ int main(int argc, char **argv)
                 std::cout << key << ": " << result << "\n"; 
             } else if (cmd[1] == 'd') { 
                 std::string key(&cmd[2]); 
-
-                //delete not implemented
             } 
         }
 
     } else {
-        std::cerr << "usage: -map | -treap | -skiplist | -hashtable | -nop <operations>" << "\n"; 
+        std::cerr << "usage: -map | -treap | -skiplist | -hashtable | -nop <operations> [-self-adjust]" << "\n";
         return 1; 
     }
 

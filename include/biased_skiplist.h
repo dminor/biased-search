@@ -40,7 +40,7 @@ template<class K, class V> class BiasedSkiplist {
 
 public:
 
-	BiasedSkiplist(size_t max_level, bool adapt_weights) : level(1), max_level(max_level), adapt_weights(adapt_weights)
+	BiasedSkiplist(size_t max_level) : level(1), max_level(max_level)
 	{
 		head = new Node(max_level, max_level, 0);
 	}
@@ -78,14 +78,8 @@ public:
         }
 
         //create new node 
-		Node *n;
-
-        if (adapt_weights) {
-		    n = new Node(insert_level, max_level, weight); 
-        } else {
-		    n = new Node(insert_level, insert_level, weight); 
-        }
-
+		Node *n = new Node(insert_level, insert_level, weight); 
+       
 		n->key = key;
 		n->value = value; 
 
@@ -106,32 +100,6 @@ public:
 			if (t->next[i] && t->next[i]->key == key) {
 				result = t->next[i]->value;
 				found = true;
-
-                if (adapt_weights) {
-                    Node *n = t->next[i];
-
-                    ++n->weight;
-                    size_t new_level = random_level(n->weight);
-                    if (new_level > n->level) {
-
-                        //search through skip list to find predecessor at each level and update
-                        Node *p = head;
-                        for (size_t j = new_level - 1; j > i && j < new_level; --j) {
-                            while (p->next[j] != 0 && p->next[j]->key < n->key) p = p->next[j];
-                            n->next[j] = p->next[j];
-                            p->next[j] = n; 
-                        } 
-
-                    } else if (new_level < t->next[i]->level) { 
-                        //remove from levels
-                        for (size_t j = n->level; j >= new_level && j < n->level; --j) {
-                            t->next[i] = t->next[i]->next[i]; 
-                        } 
-                    }
-
-                    n->level = new_level;
-                }
-
 				break;
 			}
 		}
@@ -159,18 +127,50 @@ public:
 		} 
 	}
 
+	void reweight(const K &key, size_t weight) 
+	{
+        Node *t = head;
+		for (size_t i = level - 1; i >= 0 && i < level; --i) {
+			while (t->next[i] != 0 && t->next[i]->key < key) t = t->next[i];
+			if (t->next[i] && t->next[i]->key == key) { 
+                Node *n = t->next[i];
+
+                size_t new_level = random_level(weight);
+                if (new_level > n->level) {
+
+                    //search through skip list to find predecessor at each level and update
+                    Node *p = head;
+                    for (size_t j = new_level - 1; j > i && j < new_level; --j) {
+                        while (p->next[j] != 0 && p->next[j]->key < n->key) p = p->next[j];
+                        n->next[j] = p->next[j];
+                        p->next[j] = n; 
+                    } 
+
+                } else if (new_level < t->next[i]->level) { 
+                    //remove from levels
+                    for (size_t j = n->level; j >= new_level && j < n->level; --j) {
+                        t->next[i] = t->next[i]->next[i]; 
+                    } 
+                }
+
+                n->level = new_level;
+            } 
+            break;
+		}
+	}
+
     void render_tree(const char *filename)
     {
         std::ofstream o(filename);
         if (o) { 
             for (size_t i = level - 1; i >= 0 && i < level; --i) {
                 Node *t = head;
-                std::cout << i << " ";
+                o << i << " ";
                 while (t->next[i] != 0) { 
                     t = t->next[i];
-                    std::cout << t->key << ", ";
+                    o << t->key << ", ";
                 }
-                std::cout << ".\n";
+                o << ".\n";
             } 
 
             o.close();
@@ -183,10 +183,9 @@ private:
 		K key;
 		V value;
 		size_t level;
-        size_t weight;
 		Node **next;
 
-		Node(size_t level, size_t max_level, size_t weight) : level(level), weight(weight)
+		Node(size_t level, size_t max_level, size_t weight) : level(level)
 		{
 			next = new Node *[max_level];
 
@@ -205,7 +204,6 @@ private:
 	Node *head;
 	size_t level;
 	size_t max_level;
-    bool adapt_weights;
 
 	size_t random_level(size_t weight)
 	{

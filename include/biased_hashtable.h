@@ -29,7 +29,7 @@ public:
 
     typedef size_t (*HashFunction)(const K &key);
 
-    BiasedHashtable(size_t initial_size, HashFunction hash, bool adapt_weights) : count(0), size(initial_size), hash(hash), adapt_weights(adapt_weights)
+    BiasedHashtable(size_t initial_size, HashFunction hash) : count(0), size(initial_size), hash(hash)
     {
         nodes = new Node[size]; 
     } 
@@ -90,24 +90,6 @@ public:
             if (n) {
                 found = true;
                 result = n->value;
-
-                //if adapting weights, reweight and make sure in proper order
-                if (adapt_weights) {
-                    ++n->weight;
-
-                    //if our weight is greater than our predecessor's
-                    //resinsert at proper place in list
-                    if (p && n->weight > p->weight) {
-                        p->next = n->next;
-
-                        //find place to insert node in list
-                        p = &nodes[index];
-                        while(p->next && p->next->weight > n->weight) p = p->next; 
-                        n->next = p->next;
-                        p->next = n;
-
-                    }
-                }
             }
         }
 
@@ -166,8 +148,149 @@ private:
     size_t count;
     size_t size; 
     HashFunction hash;
-    bool adapt_weights;
+    bool self_adjust;
 };
+
+template<class K, class V> class SelfAdjustingBiasedHashtable {
+
+public:
+
+    typedef size_t (*HashFunction)(const K &key);
+
+    SelfAdjustingBiasedHashtable(size_t initial_size, HashFunction hash) : count(0), size(initial_size), hash(hash)
+    {
+        nodes = new Node[size]; 
+    } 
+
+    virtual ~SelfAdjustingBiasedHashtable()
+    {
+        for (size_t i = 0; i < size; ++i) {
+            Node *n = nodes[i].next;
+            while(n) {
+                Node *t = n;
+                n = n->next;
+                delete t;
+            }
+        }
+
+        delete[] nodes; 
+    }
+
+    void insert(const K &key, const V &value)
+    {
+        size_t index = hash(key) % size;
+        if (!nodes[index].stored) {
+            //just insert node if no collision
+            nodes[index].key = key;
+            nodes[index].value = value;
+            nodes[index].stored = true;
+        } else { 
+            //copy old node and add to linked list
+            Node *t = nodes[index].next;
+            nodes[index].next = new Node;
+            nodes[index].next->key = nodes[index].key;
+            nodes[index].next->value = nodes[index].value;
+            nodes[index].next->next = t;
+
+            //insert new node at front
+            nodes[index].key = key;
+            nodes[index].value = value;
+        } 
+
+        ++count;
+    } 
+
+    bool find(const K &key, V &result)
+    {
+        bool found = false;
+        size_t index = hash(key) % size;
+        if (nodes[index].stored) {
+            Node *p = 0; 
+            Node *n = &nodes[index];
+            while (n && n->key != key) {
+                p = n;
+                n = n->next;
+            }
+
+            if (n) {
+                found = true;
+                result = n->value;
+
+                //if not already at head of list, move to front
+                if (n != &nodes[index]) {
+
+                    //move n to just after head of list
+                    p->next = n->next;
+                    Node *t = nodes[index].next;
+                    nodes[index].next = n;
+                    n->next = t;
+                    
+                    //copy from old head to n
+                    n->key = nodes[index].key;
+                    n->value = nodes[index].value;
+
+                    //set up new head 
+                    nodes[index].key = key;
+                    nodes[index].value = result;
+                }
+            }
+        }
+
+        return found;
+    }
+
+    void remove(const K &key)
+    { 
+        size_t index = hash(key) % size;
+        if (nodes[index].stored) {
+            Node *p = 0; 
+            Node *n = &nodes[index];
+            while (n && n->key != key) {
+                p = n;
+                n = n->next;
+            }
+
+            //if we found n
+            if (n) {
+                //if it is in the original node
+                if (n == &nodes[index]) {
+                    if (n->next == 0) {
+                        //if this is only node, just clear the stored flag
+                        nodes[index].stored = false;
+                    } else {
+                        //otherwise, copy next node into original node 
+                        Node *t = n->next;
+                        n->key = n->next->key;
+                        n->value = n->next->value;
+                        n->next = n->next->next;
+                        delete t; 
+                    }
+                } else {
+                    //otherwise, remove from linked list
+                    p->next = n->next;
+                    delete n;
+                } 
+            }
+        } 
+    }
+
+private:
+
+    struct Node {
+        K key;
+        V value; 
+        bool stored;
+        Node *next;
+
+        Node() : stored(false), next(0) {};
+    };
+ 
+    Node *nodes;
+    size_t count;
+    size_t size; 
+    HashFunction hash;
+};
+
 
 #endif 
 

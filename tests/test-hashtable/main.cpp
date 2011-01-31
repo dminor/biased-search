@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include "biased_hashtable.h"
 
-void runtests(BiasedHashtable<std::string, int> *ht, const std::vector<std::pair<std::string, int> > &elements)
+template<class T> void runtests(T *ht, const std::vector<std::pair<std::string, int> > &elements)
 {
     //try finding the elements
     std::cout << "testing find...\n"; 
@@ -88,31 +88,31 @@ int main(int argc, char **argv)
         elements.push_back(std::make_pair<std::string, int>(k, i + 1));
     }
 
-    //do tests in non-adaptive mode
-    std::cout << "testing in non-adaptive mode\n";
-    BiasedHashtable<std::string, int> *ht = new BiasedHashtable<std::string, int>(8, hash, false);
+    //do tests in biased mode
+    std::cout << "testing in biased mode\n";
+    BiasedHashtable<std::string, int> *ht = new BiasedHashtable<std::string, int>(8, hash);
 
     //insert into the hash table 
     for (size_t i = 0; i < TEST_SIZE; ++i) {
         ht->insert(elements[i].first, elements[i].second, rand()%10); 
     } 
 
-    runtests(ht, elements); 
+    runtests<BiasedHashtable<std::string, int> >(ht, elements); 
 
     delete ht;
 
-    //do tests in adaptive mode
-    std::cout << "testing in adaptive mode\n";
-    ht = new BiasedHashtable<std::string, int>(8, hash, true);
+    //do tests in self-adjusting mode
+    std::cout << "testing in self-adjusting mode\n";
+    SelfAdjustingBiasedHashtable<std::string, int> *saht = new SelfAdjustingBiasedHashtable<std::string, int>(8, hash);
 
     //insert into hash table
     for (size_t i = 0; i < TEST_SIZE; ++i) {
-        ht->insert(elements[i].first, elements[i].second, rand()%10); 
+        saht->insert(elements[i].first, elements[i].second);
     } 
 
-    runtests(ht, elements);
+    runtests<SelfAdjustingBiasedHashtable<std::string, int> >(saht, elements); 
 
-    delete ht;
+    delete saht;
 
     return 0;
 }

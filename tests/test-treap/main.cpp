@@ -79,8 +79,8 @@ int main(int argc, char **argv)
         elements.push_back(std::make_pair<std::string, int>(k, i + 1));
     }
 
-    //do tests in non-adaptive mode
-    std::cout << "testing in non-adaptive mode\n";
+    //do tests in biased model 
+    std::cout << "testing in biased mode\n";
     BiasedTreap<std::string, int> *treap = new BiasedTreap<std::string, int>(false);
 
     //insert into the hash table 
@@ -92,8 +92,8 @@ int main(int argc, char **argv)
 
     delete treap;
 
-    //do tests in adaptive mode
-    std::cout << "testing in adaptive mode\n";
+    //do tests in self-adjusting mode
+    std::cout << "testing in self-adjusting mode\n";
     treap = new BiasedTreap<std::string, int>(true);
 
     //insert into hash table

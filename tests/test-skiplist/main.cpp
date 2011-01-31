@@ -79,29 +79,17 @@ int main(int argc, char **argv)
         elements.push_back(std::make_pair<std::string, int>(k, i + 1));
     }
 
-    //do tests in non-adaptive mode
-    std::cout << "testing in non-adaptive mode\n";
-    BiasedSkiplist<std::string, int> *sl = new BiasedSkiplist<std::string, int>(20, false);
+    //do tests
+    BiasedSkiplist<std::string, int> *sl = new BiasedSkiplist<std::string, int>(20);
 
     //insert into the hash table 
     for (size_t i = 0; i < TEST_SIZE; ++i) {
         sl->insert(elements[i].first, elements[i].second, rand()%10); 
     } 
 
+    sl->render_tree("skiplist.txt");
+
     runtests(sl, elements); 
-
-    delete sl;
-
-    //do tests in adaptive mode
-    std::cout << "testing in adaptive mode\n";
-    sl = new BiasedSkiplist<std::string, int>(20, true);
-
-    //insert into hash table
-    for (size_t i = 0; i < TEST_SIZE; ++i) {
-        sl->insert(elements[i].first, elements[i].second, rand()%10); 
-    } 
-
-    runtests(sl, elements);
 
     delete sl;
 
