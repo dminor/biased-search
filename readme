@@ -1,1 +1,1 @@
-Implementations of biased treaps, skiplists and hash tables to support experimentation with biased search.
+Implementations of biased treaps, biased skiplists, biased hash tables and splaytrees to support experimentation with biased search.

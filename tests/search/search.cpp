@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "biased_hashtable.h"
 #include "biased_skiplist.h"
 #include "biased_treap.h"
+#include "splaytree.h"
 
 const size_t MURMURHASH2_SEED = 0x5432FEDC;
 
@@ -49,7 +50,7 @@ int main(int argc, char **argv)
 
     //check command line
     if (argc < 3) {
-        std::cerr << "usage: -map | -treap | -skiplist | -hashtable | -nop <operations> [-self-adjust]" << "\n";
+        std::cerr << "usage: -map | -treap | -skiplist | -hashtable | -splaytree | -nop <operations> [-self-adjust]" << "\n";
         return 1; 
     }
 
@@ -274,6 +275,48 @@ int main(int argc, char **argv)
 
             }
         }
+    } else if (!strcmp(argv[1], "-splaytree")) {
+
+        if (!self_adjust) {
+            std::cerr << "error: non self-adjusting mode not supported by splaytrees.\n";
+            return 1; 
+        }
+
+        SplayTree<std::string, int> *splaytree = new SplayTree<std::string, int>;
+
+        char cmd[80];
+        while (!data.eof()) {
+            data.getline(cmd, 80); 
+
+            if (cmd[0] == 'i') {
+
+                //extract word
+                size_t i = 2;
+                while (cmd[i] != ' ') ++i;
+                cmd[i] = 0;
+                std::string key(&cmd[2]);
+
+                //extract weight
+                ++i;
+                size_t weight = atoi(&cmd[i]); 
+
+                splaytree->insert(key, 0); 
+            } else if (cmd[0] == 's') {
+                std::string key(&cmd[2]); 
+
+                int result = -1;
+                if (splaytree->find(key, result)) {
+                    std::cout << key << ": " << result << "\n"; 
+                } else { 
+                    std::cout << key << ": not found" << "\n"; 
+                }
+
+            } else if (cmd[1] == 'd') { 
+                std::string key(&cmd[2]); 
+                splaytree->remove(key);
+            } 
+        } 
+
     } else if (!strcmp(argv[1], "-nop")) {
 
         char cmd[80];
@@ -303,7 +346,7 @@ int main(int argc, char **argv)
         }
 
     } else {
-        std::cerr << "usage: -map | -treap | -skiplist | -hashtable | -nop <operations> [-self-adjust]" << "\n";
+        std::cerr << "usage: -map | -treap | -skiplist | -hashtable | -splaytree | -nop <operations> [-self-adjust]" << "\n";
         return 1; 
     }
 
