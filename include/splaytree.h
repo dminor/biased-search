@@ -109,7 +109,6 @@ public:
 
 	void remove(const K &key)
 	{
-		/* FIXME: Not implemented
 		Node *n = root;
 		while (n) {
 			if (key < n->key) {
@@ -118,40 +117,69 @@ public:
 				n = n->right;
 			} else {
 
-				Node *p = n->parent;
+                Node *p = n->parent;
 
-				//find left most child of n
-
-				//we are a leaf, so it is safe to delete
-				if (n->left == 0 && n->right ==0) {
+				if (n->left == 0 && n->right == 0) {
+                    //leaf node, splice out
 					if (n->parent) {
 						if (n->parent->left == n) n->parent->left = 0;
-						else if (n->parent->right == n) n->parent->right = 0;
+						else n->parent->right = 0;
 					} else {
 						root = 0;
 					}
 
-					delete n;
-					n = 0;
+                    delete n;
+                } else if (n->left == 0) { 
+                    //just one right child
+                    Node *t = n->right;
+                    n->key = t->key;
+                    n->value = t->value;
+                    n->left = t->left;
+                    if (n->left) n->left->parent = n;
+                    n->right = t->right;
+                    if (n->right) n->right->parent = n;
+                    delete t; 
+                } else if (n->right == 0) {
+                    //just one left child
+                    Node *t = n->left;
+                    n->key = t->key;
+                    n->value = t->value;
+                    n->left = t->left;
+                    if (n->left) n->left->parent = n;
+                    n->right = t->right;
+                    if (n->right) n->right->parent = n;
+                    delete t; 
+                } else {
 
-					splay(p);
+                    //find in-order predecessor
+                    Node *t = n->left;
+                    while (t->right) t = t->right;
+
+                    //copy in fields from t
+                    n->key = t->key;
+                    n->value = t->value;
+
+                    //splice out t
+                    if (t->left) {
+                        if (t->parent->right == t) {
+                            t->parent->right = t->left;
+                            t->left->parent = t->parent;
+                        } else {
+                            t->parent->left = t->left;
+                            t->left->parent = t->parent;
+                        }
+                    } else {
+                        if (t->parent->right == t) t->parent->right = 0;
+                        else t->parent->left = 0;
+                    } 
+
+                    delete t;
 				}
+
+                //splay parent to root
+                if (p) splay(p); 
+                break;
 			}
-		}
-		*/
-	}
-
-	void render_tree(const char *filename)
-	{
-		std::ofstream o(filename);
-		if (o) {
-			o << "digraph \"splaytree\" {\n";
-			o << "ordering=out;\n";
-
-			render_node(o, root);
-
-			o << "}\n";
-			o.close();
 		}
 	}
 
@@ -256,22 +284,6 @@ private:
 		n->parent = nr;
 		nr->left = n;
 	}
-
-	bool verify_splaytree(Node *n)
-	{
-		if (!n) return true;
-
-		return verify_splaytree(n->right) && verify_splaytree(n->left);
-	}
-
-	void render_node(std::ofstream &o, Node *node)
-	{
-		o << "N" << node->key << " [label=\"" << node->key << "\";\n";
-		if (node->parent) o << "N" << node->parent->key << " -> N" << node->key << ";\n";
-		if (node->left) render_node(o, node->left);
-		if (node->right) render_node(o, node->right);
-	}
-
 };
 
 #endif
