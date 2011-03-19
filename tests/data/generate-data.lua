@@ -4,8 +4,8 @@
 --
 wordlen = 10                    -- word length
 nwords = tonumber(arg[1]) or 10000        -- number of words
-nsearches = tonumber(arg[2]) or 100000    -- number of searches
-zipf_s = tonumber(arg[3]) or 1            -- Zipf distribution "s" parameter
+zipf_s = tonumber(arg[2]) or 1            -- Zipf distribution "s" parameter
+nsearches = tonumber(arg[3]) or 500000    -- number of searches
 
 --
 -- Return a random string of the specified length
@@ -26,12 +26,14 @@ end
 -- N: total set size
 -- 
 function zipf(k, s, N) 
-    local h = 0.0
-    for n=1,N do
-        h = h + 1.0/math.pow(n, s)
+    if not zipf_h then 
+        zipf_h = 0.0
+        for n=1,N do
+            zipf_h = zipf_h + 1.0/math.pow(n, s)
+        end
     end
 
-    return 1.0/math.pow(k, s)/h
+    return 1.0/math.pow(k, s)/zipf_h
 end
 
 --
@@ -67,13 +69,21 @@ end
 function generate_sample(words, nwords) 
     local sample = {}
 
+    -- generate rough expected number of occurences
+    for _, word in ipairs(words) do
+        local n = math.floor(word.p * nwords)
+        for i=1,n do
+            table.insert(sample, word.word) 
+        end 
+    end
+
     while #sample <= nwords do
         local r = math.random()
 
         local cp = 0.0  --cumulative probability
         for _,word in ipairs(words) do
             cp = cp + word.p
-            if r < cp then
+            if r <= cp then
                 table.insert(sample, word.word)
                 break
             end 
@@ -105,7 +115,10 @@ end
 -- set random seed
 math.randomseed(os.time())
 
+print('generating dictionary')
 words = generate_dictionary(nwords)
+
+print('generating searches')
 searches = generate_sample(words, nsearches)
 
 freq = count_sample(searches)
