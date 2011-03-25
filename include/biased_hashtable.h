@@ -75,9 +75,9 @@ public:
         ++count;
     } 
 
-    bool find(const K &key, V &result)
+    V *find(const K &key)
     {
-        bool found = false;
+        V *result = 0; 
         size_t index = hash(key) % size;
         if (nodes[index].stored) {
             Node *p = 0; 
@@ -88,12 +88,11 @@ public:
             }
 
             if (n) {
-                found = true;
-                result = n->value;
+                result = &n->value;
             }
         }
 
-        return found;
+        return result;
     }
 
     void remove(const K &key)
@@ -200,9 +199,9 @@ public:
         ++count;
     } 
 
-    bool find(const K &key, V &result)
+    V *find(const K &key)
     {
-        bool found = false;
+        V *result = 0;
         size_t index = hash(key) % size;
         if (nodes[index].stored) {
             Node *p = 0; 
@@ -213,8 +212,7 @@ public:
             }
 
             if (n) {
-                found = true;
-                result = n->value;
+                result = &n->value;
 
                 //if not already at head of list, move to front
                 if (n != &nodes[index]) {
@@ -231,12 +229,12 @@ public:
 
                     //set up new head 
                     nodes[index].key = key;
-                    nodes[index].value = result;
+                    nodes[index].value = *result;
                 }
             }
         }
 
-        return found;
+        return result;
     }
 
     void remove(const K &key)

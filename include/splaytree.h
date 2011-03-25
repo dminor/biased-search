@@ -87,24 +87,23 @@ public:
 		}
 	}
 
-	bool find(const K &key, V &result)
+	V *find(const K &key)
 	{
-		bool found = false;
+	    V *result = 0;	
 
 		Node *n = root;
-		while (n && !found) {
+		while (n && !result) {
 			if (key < n->key) {
 				n = n->left;
 			} else if (n->key < key) {
 				n = n->right;
 			} else {
-				result = n->value;
-				found = true;
+				result = &n->value;
 				splay(n);
 			}
 		}
 
-		return found;
+		return result;
 	}
 
 	void remove(const K &key)

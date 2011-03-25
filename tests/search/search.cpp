@@ -93,10 +93,6 @@ int main(int argc, char **argv)
                 cmd[i] = 0;
                 std::string key(&cmd[2]);
 
-                //extract weight
-                ++i;
-                float weight = atof(&cmd[i]);
-
                 map[key] = 0;
             } else if (cmd[0] == 's') {
                 std::string key(&cmd[2]); 
@@ -141,17 +137,16 @@ int main(int argc, char **argv)
             } else if (cmd[0] == 's') {
                 std::string key(&cmd[2]); 
 
-                int result = -1;
-                if (treap->find(key, result)) {
-                    std::cout << key << ": " << result << "\n"; 
+                int *result = treap->find(key);
+                if (result) {
+                    std::cout << key << ": " << *result << "\n"; 
                 } else { 
                     std::cout << key << ": not found" << "\n";
                 }
 
             } else if (cmd[1] == 'd') { 
                 std::string key(&cmd[2]); 
-
-                //delete not implemented
+                treap->remove(key);
             } 
         }
 
@@ -184,9 +179,9 @@ int main(int argc, char **argv)
             } else if (cmd[0] == 's') {
                 std::string key(&cmd[2]); 
 
-                int result = -1;
-                if (skiplist->find(key, result)) {
-                    std::cout << key << ": " << result << "\n"; 
+                int *result = skiplist->find(key);
+                if (result) {
+                    std::cout << key << ": " << *result << "\n"; 
                 } else { 
                     std::cout << key << ": not found" << "\n"; 
                 }
@@ -218,15 +213,14 @@ int main(int argc, char **argv)
                     //extract weight
                     ++i;
                     size_t weight = atoi(&cmd[i]);
-                    //std::cout << weight << std::endl;
 
                     ht->insert(key, 0, weight); 
                 } else if (cmd[0] == 's') {
                     std::string key(&cmd[2]); 
 
-                    int result = -1;
-                    if (ht->find(key, result)) {
-                        std::cout << key << ": " << result << "\n"; 
+                    int *result = ht->find(key); 
+                    if (result) {
+                        std::cout << key << ": " << *result << "\n"; 
                     } else { 
                         std::cout << key << ": not found" << "\n"; 
                     }
@@ -252,18 +246,13 @@ int main(int argc, char **argv)
                     cmd[i] = 0;
                     std::string key(&cmd[2]);
 
-                    //extract weight
-                    ++i;
-                    size_t weight = atoi(&cmd[i]);
-                    //std::cout << weight << std::endl;
-
                     ht->insert(key, 0); 
                 } else if (cmd[0] == 's') {
                     std::string key(&cmd[2]); 
 
-                    int result = -1;
-                    if (ht->find(key, result)) {
-                        std::cout << key << ": " << result << "\n"; 
+                    int *result = ht->find(key); 
+                    if (result) {
+                        std::cout << key << ": " << *result << "\n"; 
                     } else { 
                         std::cout << key << ": not found" << "\n"; 
                     }
@@ -296,17 +285,13 @@ int main(int argc, char **argv)
                 cmd[i] = 0;
                 std::string key(&cmd[2]);
 
-                //extract weight
-                ++i;
-                size_t weight = atoi(&cmd[i]); 
-
                 splaytree->insert(key, 0); 
             } else if (cmd[0] == 's') {
                 std::string key(&cmd[2]); 
 
-                int result = -1;
-                if (splaytree->find(key, result)) {
-                    std::cout << key << ": " << result << "\n"; 
+                int *result = splaytree->find(key);
+                if (result) {
+                    std::cout << key << ": " << *result << "\n"; 
                 } else { 
                     std::cout << key << ": not found" << "\n"; 
                 }
@@ -330,10 +315,6 @@ int main(int argc, char **argv)
                 while (cmd[i] != ' ') ++i;
                 cmd[i] = 0;
                 std::string key(&cmd[2]);
-
-                //extract weight
-                ++i;
-                size_t weight = atoi(&cmd[i]); 
 
             } else if (cmd[0] == 's') {
                 std::string key(&cmd[2]); 

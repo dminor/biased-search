@@ -32,8 +32,7 @@ template<class T> void runtests(T *ht, const std::vector<std::pair<std::string, 
     //try finding the elements
     std::cout << "testing find...\n"; 
     for (size_t i = 0; i < elements.size(); ++i) {
-        int v;
-        if (!ht->find(elements[i].first, v)) {
+        if (!ht->find(elements[i].first)) {
             std::cerr << "error: find failed to locate element...\n";
         } 
     }
@@ -49,8 +48,7 @@ template<class T> void runtests(T *ht, const std::vector<std::pair<std::string, 
 
     //try finding the elements 
     for (size_t i = 0; i < elements.size(); ++i) {
-        int v;
-        bool found = ht->find(elements[i].first, v);
+        bool found = ht->find(elements[i].first) != 0;
 
         if ((i < begin_remove_index || i >= end_remove_index) && !found) {
             std::cerr << "error: find failed to locate element " << i << "...\n";
@@ -76,11 +74,11 @@ int main(int argc, char **argv)
 {
     //create some elements to test against
     std::vector<std::pair<std::string, int> > elements;
-    for (size_t i = 0; i < TEST_SIZE; ++i) {
+    for (int i = 0; i < TEST_SIZE; ++i) {
 
         //random string
         char k[STRING_SIZE];
-        for (size_t j = 0; j < STRING_SIZE - 1; ++j) {
+        for (int j = 0; j < STRING_SIZE - 1; ++j) {
             k[j] = (char)(96 + rand()%25);
         }
         k[STRING_SIZE - 1] = 0;
@@ -93,7 +91,7 @@ int main(int argc, char **argv)
     BiasedHashtable<std::string, int> *ht = new BiasedHashtable<std::string, int>(8, hash);
 
     //insert into the hash table 
-    for (size_t i = 0; i < TEST_SIZE; ++i) {
+    for (int i = 0; i < TEST_SIZE; ++i) {
         ht->insert(elements[i].first, elements[i].second, rand()%10); 
     } 
 
@@ -106,7 +104,7 @@ int main(int argc, char **argv)
     SelfAdjustingBiasedHashtable<std::string, int> *saht = new SelfAdjustingBiasedHashtable<std::string, int>(8, hash);
 
     //insert into hash table
-    for (size_t i = 0; i < TEST_SIZE; ++i) {
+    for (int i = 0; i < TEST_SIZE; ++i) {
         saht->insert(elements[i].first, elements[i].second);
     } 
 

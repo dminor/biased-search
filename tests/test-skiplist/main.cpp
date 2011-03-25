@@ -32,8 +32,7 @@ void runtests(BiasedSkiplist<std::string, int> *sl, const std::vector<std::pair<
     //try finding the elements
     std::cout << "testing find...\n"; 
     for (size_t i = 0; i < elements.size(); ++i) {
-        int v;
-        if (!sl->find(elements[i].first, v)) {
+        if (!sl->find(elements[i].first)) {
             std::cerr << "error: find failed to locate element...\n";
         } 
     }
@@ -49,8 +48,7 @@ void runtests(BiasedSkiplist<std::string, int> *sl, const std::vector<std::pair<
 
     //try finding the elements 
     for (size_t i = 0; i < elements.size(); ++i) {
-        int v;
-        bool found = sl->find(elements[i].first, v);
+        bool found = sl->find(elements[i].first) != 0;
 
         if ((i < begin_remove_index || i >= end_remove_index) && !found) {
             std::cerr << "error: find failed to locate element " << i << "...\n";

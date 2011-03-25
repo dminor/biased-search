@@ -32,8 +32,7 @@ void runtests(BiasedTreap<std::string, int> *treap, const std::vector<std::pair<
     //try finding the elements
     std::cout << "testing find...\n"; 
     for (size_t i = 0; i < elements.size(); ++i) {
-        int v;
-        if (!treap->find(elements[i].first, v)) {
+        if (!treap->find(elements[i].first)) {
             std::cerr << "error: find failed to locate element...\n";
         } 
     }
@@ -49,8 +48,7 @@ void runtests(BiasedTreap<std::string, int> *treap, const std::vector<std::pair<
 
     //try finding the elements 
     for (size_t i = 0; i < elements.size(); ++i) {
-        int v;
-        bool found = treap->find(elements[i].first, v);
+        bool found = treap->find(elements[i].first) != 0;
 
         if ((i < begin_remove_index || i >= end_remove_index) && !found) {
             std::cerr << "error: find failed to locate element " << i << "...\n";
@@ -67,7 +65,7 @@ int main(int argc, char **argv)
 {
     //create some elements to test against
     std::vector<std::pair<std::string, int> > elements;
-    for (size_t i = 0; i < TEST_SIZE; ++i) {
+    for (int i = 0; i < TEST_SIZE; ++i) {
 
         //random string
         char k[STRING_SIZE];
@@ -83,8 +81,8 @@ int main(int argc, char **argv)
     std::cout << "testing in biased mode\n";
     BiasedTreap<std::string, int> *treap = new BiasedTreap<std::string, int>(false);
 
-    //insert into the hash table 
-    for (size_t i = 0; i < TEST_SIZE; ++i) {
+    //insert into the treap 
+    for (int i = 0; i < TEST_SIZE; ++i) {
         treap->insert(elements[i].first, elements[i].second, rand()%10); 
     } 
 
@@ -96,8 +94,8 @@ int main(int argc, char **argv)
     std::cout << "testing in self-adjusting mode\n";
     treap = new BiasedTreap<std::string, int>(true);
 
-    //insert into hash table
-    for (size_t i = 0; i < TEST_SIZE; ++i) {
+    //insert into treap 
+    for (int i = 0; i < TEST_SIZE; ++i) {
         treap->insert(elements[i].first, elements[i].second, rand()%10); 
     } 
 

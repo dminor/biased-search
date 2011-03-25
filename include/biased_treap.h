@@ -91,18 +91,18 @@ public:
         } 
     }
 
-    bool find(const K &key, V &result)
+    V *find(const K &key)
     {
-        bool found = false;
+        V *result = 0;
 
         Node *n = root; 
-        while (n && !found) {
+        while (n && !result) {
             if (key < n->key) {
                 n = n->left;
             } else if (n->key < key) { 
                 n = n->right; 
             } else {
-                result = n->value;
+                result = &n->value;
 
                 //if adapting weights, generate a new priority and adjust treap
                 if (self_adjust) {
@@ -120,12 +120,10 @@ public:
                         } 
                     }
                 }
-
-                found = true;
             }
         }
 
-        return found; 
+        return result; 
     }
 
     void remove(const K &key)
@@ -236,25 +234,6 @@ private:
         n->parent = nr;
         nr->left = n;
     }
-
-    bool verify_treap(Node *n)
-    { 
-        if (!n) return true;
-
-        if (n->left && n->priority < n->left->priority) return false;
-        if (n->right && n->priority < n->right->priority) return false; 
-
-        return verify_treap(n->right) && verify_treap(n->left);
-    }
-
-    void render_node(const std::ofstream &o, Node *node)
-    {
-        o << "N" << node->key << " [label=\"" << node->key << ", " << node->priority << "\";\n";
-        if (node->parent) o << "N" << node->parent->key << " -> N" << node->key << ";\n";
-        if (node->left) render_node(o, node->left);
-        if (node->right) render_node(o, node->right);
-    }
-
 };
 
 #endif 

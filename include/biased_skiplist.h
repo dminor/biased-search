@@ -90,21 +90,20 @@ public:
 		} 
 	}
 
-	bool find(const K &key, V &result)
+	V *find(const K &key)
 	{
-		bool found = false;
+        V *result = 0;
 
         Node *t = head;
 		for (size_t i = level - 1; i >= 0 && i < level; --i) {
 			while (t->next[i] != 0 && t->next[i]->key < key) t = t->next[i];
 			if (t->next[i] && t->next[i]->key == key) {
-				result = t->next[i]->value;
-				found = true;
+				result = &t->next[i]->value;
 				break;
 			}
 		}
 
-		return found;
+		return result;
 	}
 
 	void remove(const K &key)
@@ -158,24 +157,6 @@ public:
             break;
 		}
 	}
-
-    void render_tree(const char *filename)
-    {
-        std::ofstream o(filename);
-        if (o) { 
-            for (size_t i = level - 1; i >= 0 && i < level; --i) {
-                Node *t = head;
-                o << i << " ";
-                while (t->next[i] != 0) { 
-                    t = t->next[i];
-                    o << t->key << ", ";
-                }
-                o << ".\n";
-            } 
-
-            o.close();
-        }
-    }
 
 private:
 

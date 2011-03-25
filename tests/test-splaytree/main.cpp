@@ -32,8 +32,7 @@ void runtests(SplayTree<std::string, int> *sl, const std::vector<std::pair<std::
 	//try finding the elements
 	std::cout << "testing find...\n";
 	for (size_t i = 0; i < elements.size(); ++i) {
-		int v;
-		if (!sl->find(elements[i].first, v)) {
+		if (!sl->find(elements[i].first)) {
 			std::cerr << "error: find failed to locate element...\n";
 		}
 	}
@@ -49,8 +48,7 @@ void runtests(SplayTree<std::string, int> *sl, const std::vector<std::pair<std::
 
 	//try finding the elements
 	for (size_t i = 0; i < elements.size(); ++i) {
-		int v;
-		bool found = sl->find(elements[i].first, v);
+		bool found = sl->find(elements[i].first) != 0;
 
 		if ((i < begin_remove_index || i >= end_remove_index) && !found) {
 			std::cerr << "error: find failed to locate element " << i << "...\n";
@@ -86,8 +84,6 @@ int main(int argc, char **argv)
 	for (size_t i = 0; i < TEST_SIZE; ++i) {
 		st->insert(elements[i].first, elements[i].second);
 	}
-
-	//st->render_tree("splaytree.dot");
 
 	runtests(st, elements);
 
