@@ -58,11 +58,11 @@ template<class T> void runtests(T *ht, const std::vector<std::pair<std::string, 
     }
 }
 
-const size_t MURMURHASH2_SEED = 0x5432FEDC;
+const unsigned int MURMURHASH2_SEED = 0x5432FEDC;
 
-size_t MurmurHash2 ( const void * key, int len, unsigned int seed );
+unsigned int MurmurHash2 ( const void * key, int len, unsigned int seed );
 
-size_t hash(const std::string &key)
+unsigned int hash(const std::string &key)
 {
     return MurmurHash2(key.c_str(), key.size(), MURMURHASH2_SEED);
 }

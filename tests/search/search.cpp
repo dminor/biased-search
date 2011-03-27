@@ -31,16 +31,16 @@ THE SOFTWARE.
 #include "biased_treap.h"
 #include "splaytree.h"
 
-const size_t MURMURHASH2_SEED = 0x5432FEDC;
+const unsigned int MURMURHASH2_SEED = 0x5432FEDC;
 
-size_t MurmurHash2 ( const void * key, int len, unsigned int seed );
+unsigned int MurmurHash2 ( const void * key, int len, unsigned int seed );
 
 bool operator<(const std::string &a, const std::string &b)
 {
     return a.compare(b) < 0;
 }
 
-size_t hash(const std::string &key)
+unsigned int hash(const std::string &key)
 {
     return MurmurHash2(key.c_str(), key.size(), MURMURHASH2_SEED);
 }
