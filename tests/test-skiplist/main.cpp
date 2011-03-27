@@ -85,8 +85,6 @@ int main(int argc, char **argv)
         sl->insert(elements[i].first, elements[i].second, rand()%10); 
     } 
 
-    sl->render_tree("skiplist.txt");
-
     runtests(sl, elements); 
 
     delete sl;

@@ -50,13 +50,13 @@ int main(int argc, char **argv)
 
     //check command line
     if (argc < 3) {
-        std::cerr << "usage: -map | -treap | -skiplist | -hashtable | -splaytree | -nop <operations> [-self-adjust]" << "\n";
+        std::cerr << "usage: -map | -treap | -skiplist | -hashtable | -splaytree | -nop <operations> [-self-adjust] [-size=n]" << "\n";
         return 1; 
     }
 
     //see if we should adapt weights
     bool self_adjust = false;
-    if (argc == 4) {
+    if (argc >= 4) {
         if (!strncmp(argv[3], "-self-adjust", 15)) {
             self_adjust = true;
             std::cerr << "using self adjusting version" << std::endl;
@@ -196,7 +196,11 @@ int main(int argc, char **argv)
 
         if (!self_adjust) {
 
-            BiasedHashtable<std::string, int> *ht = new BiasedHashtable<std::string, int>(5000, hash);
+            int size;
+            if (argc < 4 || !sscanf(argv[3], "-size=%d", &size)) size = 1000;
+
+            std::cerr << "hash table size: " << size << "\n";
+            BiasedHashtable<std::string, int> *ht = new BiasedHashtable<std::string, int>(size, hash);
 
             char cmd[80];
             while (!data.eof()) {
@@ -232,7 +236,12 @@ int main(int argc, char **argv)
             }
         } else {
 
-            SelfAdjustingBiasedHashtable<std::string, int> *ht = new SelfAdjustingBiasedHashtable<std::string, int>(5000, hash);
+            int size;
+            if (argc < 5 || !sscanf(argv[4], "-size=%d", &size)) size = 1000;
+
+            std::cerr << "hash table size: " << size << "\n";
+
+            SelfAdjustingBiasedHashtable<std::string, int> *ht = new SelfAdjustingBiasedHashtable<std::string, int>(size, hash);
 
             char cmd[80];
             while (!data.eof()) {
