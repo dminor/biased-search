@@ -27,7 +27,7 @@ template<class K, class V> class BiasedHashtable {
 
 public:
 
-    typedef size_t (*HashFunction)(const K &key);
+    typedef unsigned int (*HashFunction)(const K &key);
 
     BiasedHashtable(size_t initial_size, HashFunction hash) : count(0), size(initial_size), hash(hash)
     {
