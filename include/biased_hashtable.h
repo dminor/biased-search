@@ -154,7 +154,7 @@ template<class K, class V> class SelfAdjustingBiasedHashtable {
 
 public:
 
-    typedef size_t (*HashFunction)(const K &key);
+    typedef unsigned int (*HashFunction)(const K &key);
 
     SelfAdjustingBiasedHashtable(size_t initial_size, HashFunction hash) : count(0), size(initial_size), hash(hash)
     {
