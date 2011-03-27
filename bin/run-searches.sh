@@ -35,7 +35,7 @@ do
             for i in 1 2 3 4 5 6 7 8 9 10
             do
                 echo run $i
-                /usr/bin/time -a -o $outfile ./search $imp "$testdir/s$nwords-500000-z$zipf.txt" $selfadjust > /dev/null
+                /usr/bin/time -a -o $outfile ./search $imp "$testdir/s$nwords-500000-z$zipf.txt" $selfadjust -size=$nwords > /dev/null
                 sleep $sleeptime
             done 
         done

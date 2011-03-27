@@ -23,7 +23,7 @@ do
         for i in 1 2 3 4 5 6 7 8 9 10
         do
             echo run $i
-            /usr/bin/time -a -o $outfile ./search $imp $testfile $selfadjust > /dev/null
+            /usr/bin/time -a -o $outfile ./search $imp $testfile $selfadjust -size=20000 > /dev/null
             sleep $sleeptime
         done 
     done
