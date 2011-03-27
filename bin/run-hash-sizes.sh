@@ -1,13 +1,12 @@
 #!/bin/bash
 
 #config variables
-nwords=$1
+nwords=10000
 sleeptime=2
-testsize=10000
 testdir="../tests/data" 
 imp="-hashtable"
 
-outfile="results-search-$nwords"
+outfile="results-hash-sizes"
 
 if [ -e $outfile ]; then
     rm $outfile
