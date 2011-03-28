@@ -2,7 +2,7 @@
 
 #config variables
 sleeptime=2
-testfile="../tests/data/i20000.txt" 
+testdir="../tests/data"
 outfile="results-insert"
 
 if [ -e $outfile ]; then
@@ -14,17 +14,21 @@ export TIME="%C,%E,%M"
 #test each bias level
 for selfadjust in "" "-self-adjust"
 do 
-    #test each implementation
-    for imp in "-nop" "-map" "-treap" "-hashtable" "-skiplist" "-splaytree"
+    for nwords in "5000" "10000" "20000"
     do
-        echo "testing: $imp"
 
-        #run test and record to log file 
-        for i in 1 2 3 4 5 6 7 8 9 10
+        #test each implementation
+        for imp in "-nop" "-map" "-treap" "-hashtable" "-skiplist" "-splaytree"
         do
-            echo run $i
-            /usr/bin/time -a -o $outfile ./search $imp $testfile $selfadjust -size=20000 > /dev/null
-            sleep $sleeptime
-        done 
+            echo "testing: $imp"
+
+            #run test and record to log file 
+            for i in 1 2 3 4 5 6 7 8 9 10
+            do
+                echo run $i
+                /usr/bin/time -a -o $outfile ./search $imp $testdir/i$nwords.txt $selfadjust -size=$nwords > /dev/null
+                sleep $sleeptime
+            done 
+        done
     done
 done
